@@ -16,6 +16,24 @@ def get_haml_loader(loader):
                 return loader.load_template_source(*args, **kwargs)
 
     class Loader(baseclass):
+        def get_contents(self, origin):
+            # Django>=1.9
+            _name, _extension = os.path.splitext(origin.template_name)
+            for extension in hamlpy.VALID_EXTENSIONS:
+                try:
+                    haml_source, template_path = super(Loader, self).load_template_source(
+                        self._generate_template_name(_name, extension)
+                    )
+                except TemplateDoesNotExist:
+                    pass
+                else:
+                    hamlParser = hamlpy.Compiler()
+                    html = hamlParser.process(haml_source)
+
+                    return html, template_path
+
+            raise TemplateDoesNotExist(origin.template_name)
+
         def load_template_source(self, template_name, *args, **kwargs):
             _name, _extension = os.path.splitext(template_name)
 
