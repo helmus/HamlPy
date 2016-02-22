@@ -38,16 +38,12 @@ def get_haml_loader(loader):
     class Loader(BaseClass):
         def get_contents(self, origin):
             # Django>=1.9
+            name, _extension = os.path.splitext(origin.name)
+            origin.name = name + '.haml'
             contents = super(Loader, self).get_contents(origin)
-            name, _extension = os.path.splitext(origin.template_name)
-            # os.path.splitext always returns a period at the start of extension
-            extension = _extension.lstrip('.')
 
-            if extension in hamlpy.VALID_EXTENSIONS:
-                compiler = hamlpy.Compiler(options_dict=options_dict)
-                return compiler.process(contents)
-
-            return contents
+            compiler = hamlpy.Compiler(options_dict=options_dict)
+            return compiler.process(contents)
 
         def load_template_source(self, template_name, *args, **kwargs):
             # Django<1.9
